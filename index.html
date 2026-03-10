@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downgrader Install</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+        }
+        h1 { color: #58a6ff; }
+        p { color: #8b949e; margin-bottom: 25px; }
+        
+        /* Terminal Style Box */
+        .command-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .command-box:hover {
+            border-color: #58a6ff;
+        }
+        .command-text {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            color: #79c0ff;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .copy-icon {
+            fill: #8b949e;
+            margin-left: 15px;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            top: -40px;
+            right: 10px;
+            background: #238636;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Install Downgrader</h1>
+    <p>Click the command below to copy it to your clipboard, then paste it into your terminal.</p>
+
+    <div class="command-box" id="copyBox" onclick="copyToClipboard()">
+        <span class="command-text" id="command">curl -L https://raw.githubusercontent.com/hanahsong/downgrader/refs/heads/main/downgrade.sh | bash</span>
+        <svg class="copy-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <div class="tooltip" id="tooltip">Copied!</div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard() {
+        const text = document.getElementById('command').innerText;
+        const tooltip = document.getElementById('tooltip');
+        
+        navigator.clipboard.writeText(text).then(() => {
+            // Show feedback
+            tooltip.style.display = 'block';
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
