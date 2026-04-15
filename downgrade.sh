@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -eu
 
@@ -14,7 +13,7 @@ set -eu
     FlatpakSLSsteamConfigDir=$HOME/.var/app/com.valvesoftware.Steam/.config/SLSsteam
     SLSsteamInstallDir=$HOME/.local/share/SLSsteam
     SLSsteamConfigDir=$HOME/.config/SLSsteam
-    InstallDir=$SCRIPT_DIR/bin
+    InstallDir=$SCRIPT_DIR/SLSsteam_Download/bin
     Headcrab_Downgrader_Path=$HOME/.headcrab
 	
 	#URL'S
@@ -23,9 +22,9 @@ set -eu
     DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
 	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
-    dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
-    dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
-    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/sources.txt"
+    dgsc="https://github.com/Deadboy666/h3adcr-b/raw/refs/heads/testing/dgsc"
+    dlm="https://github.com/Deadboy666/h3adcr-b/raw/refs/heads/testing/dlm"
+    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
 	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.desktop"
 	
     read_os_release(){
@@ -61,18 +60,34 @@ set -eu
         read_os_release
         [ "$OS_ID" = "steamos" ]
         }
+		
+	voidcheck(){
+        read_os_release
+        [ "$OS_ID" = "void" ]
+        }
+	
+	cachyoscheck(){
+        read_os_release
+        [ "$OS_ID" = "cachyos" ]
+        }
+		
+	bazzitecheck(){
+        read_os_release
+        [ "$OS_ID" = "bazzite" ]
+        }
     
     flatpakcheck(){
         [ -d "$FlatpakSteamInstallDir" ]
         }
 		
 	SetupHeadcrab_Updater(){
+		mkdir -p $ApplicationDirectory
 		cd $ApplicationDirectory/
 		if [ -f headcrab.desktop ]; then
 			rm headcrab.desktop
 		fi
 			wget "$Headcrab_Updater" &> /dev/null
-			chmod +x headcrab.desktop
+		    chmod +x headcrab.desktop
 			update-desktop-database $ApplicationDirectory
 			echo "Headcrab Updater Now In Your Applications Menu"
 			echo "Can Open Up Headcrab Updater To Update To Latest Version."
@@ -82,11 +97,48 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable"
-        else
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
-            echo "SteamClientChannel: Beta"
+			echo "SteamClientChannel: Beta"
+			echo "Reverting To Stable Client With DGSC"
+		else
+			echo "Unknown Version Number"
         fi
             echo "SteamClientType: SteamOS"
+        }
+		
+	BazziteClientCheck(){
+        if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
+            versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Stable (Bazzite-Deck)"
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
+            versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Beta (Bazzite-Deck)"
+		elif [ -f "steam_client_ubuntu12.manifest" ]; then
+            versionnumber=$(grep '"version"' steam_client_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Stable (Bazzite-Desktop)"
+		else
+            versionnumber=$(grep '"version"' steam_client_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Beta (Bazzite-Desktop)"
+        fi
+            echo "SteamClientType: Bazzite"
+        }
+
+	CachyClientCheck(){
+        if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
+            versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Stable (CachyOS-Handheld)"
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
+            versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Beta (CachyOS-Handheld)"
+		elif [ -f "steam_client_ubuntu12.manifest" ]; then
+            versionnumber=$(grep '"version"' steam_client_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Stable (CachyOS-Desktop)"
+		else
+            versionnumber=$(grep '"version"' steam_client_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Beta (CachyOS-Desktop)"
+        fi
+            echo "SteamClientType: CachyOS"
         }
 
     FlatpakClientCheck(){
@@ -110,13 +162,30 @@ set -eu
         fi
             echo "SteamClientType: Native"
         }
-
+		
+	VoidClientCheck(){
+        if [ -f "steam_client_ubuntu12.manifest" ]; then
+            versionnumber=$(grep '"version"' steam_client_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Stable"
+        else
+            versionnumber=$(grep '"version"' steam_client_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
+            echo "SteamClientChannel: Beta"
+        fi
+            echo "SteamClientType: Void"
+        }
+		
     CheckClientInfo(){
         echo "SteamClientInfo:"
         wheresteamcfg
         cd package/
         if steamoscheck; then
             SteamOSClientCheck
+		elif bazzitecheck; then
+            BazziteClientCheck
+		elif cachyoscheck; then
+			CachyClientCheck
+		elif voidcheck; then
+			VoidClientCheck
         elif flatpakcheck; then
             FlatpakClientCheck
         else
@@ -141,7 +210,8 @@ set -eu
         }
 
     preinstallchecks(){
-        InstallDebianDeps
+        InstallVoidDeps
+		InstallDebianDeps
         RemoveArchPkg
         DisableSLSsteamPath
         }
@@ -175,6 +245,72 @@ set -eu
 
         fi
 	    }
+		
+		InstallVoidDeps(){
+        if voidcheck; then
+            if ! command -v xbps-install >/dev/null 2>&1; then
+                echo "Void Linux detected but xbps-install was not found in PATH"
+                return 1
+            fi
+
+            local pkg cmd install_cmd
+            local missing_pkgs=()
+            local missing_cmds=()
+
+            for pkg in wget curl grep gawk sed 7zip; do
+                case "$pkg" in
+                    gawk) cmd="awk" ;;
+                    7zip) cmd="7z" ;;
+                    *) cmd="$pkg" ;;
+                esac
+
+                if ! command -v "$cmd" >/dev/null 2>&1; then
+                    missing_pkgs+=("$pkg")
+                fi
+            done
+
+            if [ "${#missing_pkgs[@]}" -eq 0 ]; then
+                echo "Void dependencies already installed"
+                return 0
+            fi
+
+            if [ "$(id -u)" -eq 0 ]; then
+                install_cmd="xbps-install"
+            elif command -v sudo >/dev/null 2>&1; then
+                install_cmd="sudo xbps-install"
+            else
+                echo "Void dependencies missing: ${missing_pkgs[*]}"
+                echo "Install them with: xbps-install ${missing_pkgs[*]}"
+                echo "Re-run as root or install sudo for automatic dependency installation"
+                return 1
+            fi
+
+            echo "Installing missing Void dependencies: ${missing_pkgs[*]}"
+            if ! $install_cmd -y "${missing_pkgs[@]}"; then
+                echo "Failed to install Void dependencies: ${missing_pkgs[*]}"
+                return 1
+            fi
+
+            for pkg in wget curl grep gawk sed 7zip; do
+                case "$pkg" in
+                    gawk) cmd="awk" ;;
+                    7zip) cmd="7z" ;;
+                    *) cmd="$pkg" ;;
+                esac
+
+                if ! command -v "$cmd" >/dev/null 2>&1; then
+                    missing_cmds+=("$cmd")
+                fi
+            done
+
+            if [ "${#missing_cmds[@]}" -ne 0 ]; then
+                echo "Void dependencies still missing after install: ${missing_cmds[*]}"
+                return 1
+            fi
+
+            echo "Void dependencies installed successfully"
+        fi
+    }
 
     RemoveArchPkg(){
         if archcheck; then
@@ -212,16 +348,46 @@ set -eu
             echo "Not present: $local_target"
         fi
     }
-    
+	
+    TrashiteWatMani(){
+		wheresteamcfg
+		cd package/
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+			echo "Headcrab Downloading Bazzite-Deck Client Manifest"
+			wget "$DeckClientManifest" &> /dev/null
+		else
+			echo "Headcrab Downloading Bazzite-Desktop Client Manifest"
+			wget "$LinuxClientManifest" &> /dev/null
+		fi
+			echo "" &> /dev/null
+		}
+
+	CachyWatMani(){
+		wheresteamcfg
+		cd package/
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+			echo "Headcrab Downloading CachyOS-Handheld Client Manifest"
+			wget "$DeckClientManifest" &> /dev/null
+		else
+			echo "Headcrab Downloading CachyOS-Desktop Client Manifest"
+			wget "$LinuxClientManifest" &> /dev/null
+		fi
+			echo "" &> /dev/null
+		}
+		
     DownloadClientManifest(){
-        if steamoscheck; then
-        echo "Headcrab Downloading Steamos Client Manifest.."
-        wget "$DeckClientManifest" &> /dev/null
-    else
-        echo "Headcrab Downloading Linux Client Manifest.."
-        wget "$LinuxClientManifest" &> /dev/null
-    fi
-        echo "Client Manifest Downloaded"
+	    if steamoscheck; then
+	        echo "Headcrab Downloading Steamos Client Manifest.."
+	        wget "$DeckClientManifest" &> /dev/null
+		elif bazzitecheck; then
+			TrashiteWatMani
+		elif cachyoscheck; then
+			CachyWatMani
+	    else
+	        echo "Headcrab Downloading Linux Client Manifest.."
+	        wget "$LinuxClientManifest" &> /dev/null
+	    fi
+	        echo "Client Manifest Downloaded"
     }
     
     download_dgsc(){
@@ -282,10 +448,22 @@ set -eu
         if steamoscheck; then
             echo "Steamos Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam 
-        elif flatpakcheck; then
+           export_sls wheresteam -exitsteam
+		elif bazzitecheck; then
+			echo "Bazzite Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-            export_sls wheresteam -clearbeta steam://exit
+           export_sls wheresteam -exitsteam
+		elif cachyoscheck; then
+			echo "CachyOS Detected"
+            echo "Headcrab Bootstrapping SLSsteam.."
+           export_sls wheresteam -exitsteam
+        elif flatpakcheck; then
+            echo "Headcrab Bootstrapping SLSsteam.."  
+			export_sls wheresteam -clearbeta steam://exit
+		elif voidcheck; then
+			echo "Void Linux"
+			echo "Headcrab Bootstrapping SLSsteam.."  
+			export_sls wheresteam -clearbeta steam://exit
 		else
 			export_sls wheresteam -clearbeta -exitsteam &> /dev/null
         fi
@@ -346,8 +524,15 @@ set -eu
             
     overideupdate(){
         echo "the headcrab latches on the steam process.."
+		killall dgsc | true
         if steamoscheck; then
             echo "Steamos Detected"
+            createsteamcfg
+            dgsc
+            echo "Headcrab Connecting to The Updater.."
+           export_sls wheresteam -textmode -forcesteamupdate -forcepackagedownload -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam &> /dev/null
+		elif bazzitecheck; then
+			echo "Bazzite Detected"
             createsteamcfg
             dgsc
             echo "Headcrab Connecting to The Updater.."
@@ -379,6 +564,8 @@ set -eu
     downloadSLSsteam(){
         echo "Downloading Latest SLSsteam.."
         cd $SCRIPT_DIR/
+		mkdir -p $SCRIPT_DIR/SLSsteam_Download
+		cd SLSsteam_Download
         wget -O SLSsteam-Any.7z \
     $(curl -s "https://api.github.com/repos/AceSLS/SLSsteam/releases/latest" \
     | grep "browser_download_url" \
@@ -394,12 +581,12 @@ set -eu
                 copySLSsteam
                 LD_AUDIT=$HOME/.local/share/SLSsteam/library-inject.so:$HOME/.local/share/SLSsteam/SLSsteam.so "$@"
         fi
-                echo "" &> /dev/null
+                echo &> /dev/null
                 }
 
     extractSLSsteam(){
         downloadSLSsteam
-         7z x $SCRIPT_DIR/SLSsteam-Any.7z -aoa > /dev/null
+         7z x $SCRIPT_DIR/SLSsteam_Download/SLSsteam-Any.7z -aoa > /dev/null
          rm -rf tools
          rm -rf res
          rm setup.sh
@@ -421,39 +608,23 @@ set -eu
         else
             copySLSsteam
         fi
-            backupconfig
+            echo &. /dev/null
         }
-
-    plsdontbreakthingsthatwork(){
-        whereSLSsteamconfig
-        if [ -f "config.bak" ]; then
-            mv config.bak config.yaml
-    else
-            echo "" &> /dev/null
-        fi
-            echo "" &> /dev/null
-            }
-            
-    backupconfig(){
-        plsdontbreakthingsthatwork
-        if [ -f "config.yaml" ]; then
-            mv config.yaml config.yaml.bak
-    else
-            echo "" &> /dev/null
-        fi
-            echo "" &> /dev/null
-            }
 
     editconfig(){
         whereSLSsteamconfig
-            if grep -q -F "PlayNotOwnedGames: no" "config.yaml"; then
+            if grep -q -F "PlayNotOwnedGames: " "config.yaml"; then
                 sed -i "s/^PlayNotOwnedGames:.*/PlayNotOwnedGames: yes/" config.yaml
                 sed -i "s/^SafeMode:.*/SafeMode: yes/" config.yaml
+				sed -i "s/^NotifyInit:.*/NotifyInit: yes/" config.yaml
+				sed -i "s/^Notifications:.*/Notifications: yes/" config.yaml
                 echo "PlayNotOwnedGames: Enabled"
                 echo "SafeMode: Enabled"
+				echo "Notifications: Enabled"
             else
                 echo "PlayNotOwnedGames: Enabled"
                 echo "SafeMode: Enabled"
+				echo "Notifications: Disabled"
                 fi
             }
 
@@ -510,7 +681,6 @@ EOF
     main(){
         preinstallchecks
 		SetupHeadcrab_Updater
-        backupconfig
         checkforsteamcfg
         }
 
