@@ -18,12 +18,12 @@ set -eu
 	
 	#URL'S
     Headcrab_Downgrade_URL="http://localhost:1666/"
-	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_ubuntu12"
-    DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
+	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_ubuntu12"
+    DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
 	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
-    dgsc="https://github.com/Deadboy666/h3adcr-b/raw/refs/heads/testing/dgsc"
-    dlm="https://github.com/Deadboy666/h3adcr-b/raw/refs/heads/testing/dlm"
+    dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
+    dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
     Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
 	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.desktop"
 	
@@ -97,7 +97,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable"
-        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
+        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
 			echo "SteamClientChannel: Beta"
 			echo "Reverting To Stable Client With DGSC"
@@ -111,7 +111,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable (Bazzite-Deck)"
-        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
+        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Beta (Bazzite-Deck)"
 		elif [ -f "steam_client_ubuntu12.manifest" ]; then
@@ -128,7 +128,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable (CachyOS-Handheld)"
-        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
+        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Beta (CachyOS-Handheld)"
 		elif [ -f "steam_client_ubuntu12.manifest" ]; then
@@ -352,7 +352,7 @@ set -eu
     TrashiteWatMani(){
 		wheresteamcfg
 		cd package/
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
 			echo "Headcrab Downloading Bazzite-Deck Client Manifest"
 			wget "$DeckClientManifest" &> /dev/null
 		else
@@ -365,7 +365,7 @@ set -eu
 	CachyWatMani(){
 		wheresteamcfg
 		cd package/
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
 			echo "Headcrab Downloading CachyOS-Handheld Client Manifest"
 			wget "$DeckClientManifest" &> /dev/null
 		else
@@ -448,15 +448,15 @@ set -eu
         if steamoscheck; then
             echo "Steamos Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam
+           export_sls wheresteam -exitsteam &> /dev/null
 		elif bazzitecheck; then
 			echo "Bazzite Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam
+           export_sls wheresteam -exitsteam &> /dev/null
 		elif cachyoscheck; then
 			echo "CachyOS Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam
+           export_sls wheresteam -exitsteam &> /dev/null
         elif flatpakcheck; then
             echo "Headcrab Bootstrapping SLSsteam.."  
 			export_sls wheresteam -clearbeta steam://exit
@@ -608,30 +608,27 @@ set -eu
         else
             copySLSsteam
         fi
-            echo &. /dev/null
+            echo &> /dev/null
         }
+
 
     editconfig(){
         whereSLSsteamconfig
-            if grep -q -F "PlayNotOwnedGames: " "config.yaml"; then
+            if [ -f .headcrabd ]; then
+                echo "Headcrab Config Found Skipping Changes"
+            else
                 sed -i "s/^PlayNotOwnedGames:.*/PlayNotOwnedGames: yes/" config.yaml
                 sed -i "s/^SafeMode:.*/SafeMode: yes/" config.yaml
 				sed -i "s/^NotifyInit:.*/NotifyInit: yes/" config.yaml
 				sed -i "s/^Notifications:.*/Notifications: yes/" config.yaml
-                echo "PlayNotOwnedGames: Enabled"
-                echo "SafeMode: Enabled"
-				echo "Notifications: Enabled"
-            else
-                echo "PlayNotOwnedGames: Enabled"
-                echo "SafeMode: Enabled"
-				echo "Notifications: Disabled"
+				echo "config patched" > .headcrabd
                 fi
             }
 
     createsteamcfg(){
     wheresteamcfg
     if [ -f "steam.cfg" ]; then
-        rm steam.cfg
+        echo "steam.cfg Found Skipping Creation Process.."
     else
         cat << 'EOF' > steam.cfg
 BootStrapperInhibitAll=enable
