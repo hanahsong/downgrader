@@ -2,7 +2,7 @@
 set -eu
 
     #Headcrab Compatibile Client Version
-    HeadcrabCompatibleClientVer=1773426488
+    HeadcrabCompatibleClientVer=1777411435
     
     #Paths
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
@@ -18,14 +18,15 @@ set -eu
 	
 	#URL'S
     Headcrab_Downgrade_URL="http://localhost:1666/"
-	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_ubuntu12"
-    DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
-	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
-	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
+	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_ubuntu12"
+    DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
+	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/headcrab_native.sh"
+	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/headcrab_flatpak.sh"
+	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/client.sh"
     dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
     dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
-    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
-	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.desktop"
+    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/sources.txt"
+	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/testing/headcrab.desktop"
 	
     read_os_release(){
         local f
@@ -97,7 +98,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable"
-        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
 			echo "SteamClientChannel: Beta"
 			echo "Reverting To Stable Client With DGSC"
@@ -111,7 +112,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable (Bazzite-Deck)"
-        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Beta (Bazzite-Deck)"
 		elif [ -f "steam_client_ubuntu12.manifest" ]; then
@@ -128,7 +129,7 @@ set -eu
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Stable (CachyOS-Handheld)"
-        elif [ -f "steam_client_steamdeck_publicbeta_ubuntu12.manifest" ]; then
+        elif [ -f steam_client_steamdeck_publicbeta_ubuntu12.manifest ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_publicbeta_ubuntu12.manifest | awk -F'"' '{print $4}')
             echo "SteamClientChannel: Beta (CachyOS-Handheld)"
 		elif [ -f "steam_client_ubuntu12.manifest" ]; then
@@ -352,7 +353,7 @@ set -eu
     TrashiteWatMani(){
 		wheresteamcfg
 		cd package/
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
 			echo "Headcrab Downloading Bazzite-Deck Client Manifest"
 			wget "$DeckClientManifest" &> /dev/null
 		else
@@ -365,7 +366,7 @@ set -eu
 	CachyWatMani(){
 		wheresteamcfg
 		cd package/
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
 			echo "Headcrab Downloading CachyOS-Handheld Client Manifest"
 			wget "$DeckClientManifest" &> /dev/null
 		else
@@ -448,15 +449,15 @@ set -eu
         if steamoscheck; then
             echo "Steamos Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam &> /dev/null
+           export_sls wheresteam -exitsteam
 		elif bazzitecheck; then
 			echo "Bazzite Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam &> /dev/null
+           export_sls wheresteam -exitsteam
 		elif cachyoscheck; then
 			echo "CachyOS Detected"
             echo "Headcrab Bootstrapping SLSsteam.."
-           export_sls wheresteam -exitsteam &> /dev/null
+           export_sls wheresteam -exitsteam
         elif flatpakcheck; then
             echo "Headcrab Bootstrapping SLSsteam.."  
 			export_sls wheresteam -clearbeta steam://exit
@@ -608,9 +609,8 @@ set -eu
         else
             copySLSsteam
         fi
-            echo &> /dev/null
+            echo &. /dev/null
         }
-
 
     editconfig(){
         whereSLSsteamconfig
@@ -650,9 +650,11 @@ EOF
     patchflatpaksteam(){
         cd $FlatpakSteamInstallDir/
         if [ -f "steam.sh" ]; then
-            mv steam.sh steam.sh.bak
+            rm steam.sh
+			wget -O client.sh "$Headcrab_Client" &> /dev/null
         	wget -O steam.sh "$Headcrab_Flatpak" &> /dev/null
 			chmod +x steam.sh
+			chmod +x client.sh
 		fi
             echo "SLSSteamInstallType: Flatpak"
         }
@@ -660,9 +662,11 @@ EOF
     patchlocalsteam(){
         cd $SteamInstallDir/
         if [ -f "steam.sh" ]; then
-            mv steam.sh steam.sh.bak
+            rm steam.sh
+			wget -O client.sh "$Headcrab_Client" &> /dev/null
         	wget -O steam.sh "$Headcrab_Native" &> /dev/null
 			chmod +x steam.sh
+			chmod +x client.sh
 		fi
         	echo "SLSSteamInstallType: Local"
         }
