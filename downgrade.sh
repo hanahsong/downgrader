@@ -2,7 +2,7 @@
 set -eu
 
     #Headcrab Compatibile Client Version
-    HeadcrabCompatibleClientVer=1778003620
+    HeadcrabCompatibleClientVer=1778281814
     
     #Paths
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
@@ -25,7 +25,7 @@ set -eu
 	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/client.sh"
     dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
     dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
-    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/sources.txt"
+    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
 	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.desktop"
 	
     read_os_release(){
@@ -366,7 +366,7 @@ set -eu
 	CachyWatMani(){
 		wheresteamcfg
 		cd package/
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
 			echo "Headcrab Downloading CachyOS-Handheld Client Manifest"
 			wget "$DeckClientManifest" &> /dev/null
 		else
