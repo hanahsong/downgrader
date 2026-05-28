@@ -2,16 +2,19 @@
 set -eu
 
     #Headcrab Compatibile Client Version
-    HeadcrabCompatibleClientVer=1778281814
+    HeadcrabCompatibleClientVer=1779486452
     
     #Paths
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 	ApplicationDirectory=$HOME/.local/share/applications
+	IconDirectory=$HOME/.local/share/icons/hicolor/48x48/apps
     SteamInstallDir=$HOME/.steam/steam
-    FlatpakSteamInstallDir=$HOME/.var/app/com.valvesoftware.Steam/.steam/steam
+    FlatpakCloudRedirectDir=$HOME/.var/app/com.valvesoftware.Steam/.local/share/CloudRedirect
+	FlatpakSteamInstallDir=$HOME/.var/app/com.valvesoftware.Steam/.steam/steam
     FlatpakSLSsteamInstallDir=$HOME/.var/app/com.valvesoftware.Steam/.local/share/SLSsteam
     FlatpakSLSsteamConfigDir=$HOME/.var/app/com.valvesoftware.Steam/.config/SLSsteam
-    SLSsteamInstallDir=$HOME/.local/share/SLSsteam
+    CloudRedirectDir=$HOME/.local/share/CloudRedirect
+	SLSsteamInstallDir=$HOME/.local/share/SLSsteam
     SLSsteamConfigDir=$HOME/.config/SLSsteam
     InstallDir=$SCRIPT_DIR/SLSsteam_Download/bin
     Headcrab_Downgrader_Path=$HOME/.headcrab
@@ -22,11 +25,13 @@ set -eu
     DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
 	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
-	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/client.sh"
+	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/cr-test/client.sh"
+	CloudRedirectLib="https://github.com/Selectively11/CloudRedirect/releases/download/linux/cloud_redirect.so"
     dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
     dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
-    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
-	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.desktop"
+    Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/testing/sources.txt"
+	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab.desktop"
+	Headcrab_Icon="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab.png"
 	
     read_os_release(){
         local f
@@ -81,13 +86,13 @@ set -eu
         [ -d "$FlatpakSteamInstallDir" ]
         }
 		
-	SetupHeadcrab_Updater(){
+		SetupHeadcrab_Updater(){
 		mkdir -p $ApplicationDirectory
+		mkdir -p $IconDirectory
+		cd $IconDirectory/
+		wget -O headcrab.png "$Headcrab_Icon" &> /dev/null
 		cd $ApplicationDirectory/
-		if [ -f headcrab.desktop ]; then
-			rm headcrab.desktop
-		fi
-			wget "$Headcrab_Updater" &> /dev/null
+			wget -O headcrab.desktop "$Headcrab_Updater" &> /dev/null
 		    chmod +x headcrab.desktop
 			update-desktop-database $ApplicationDirectory
 			echo "Headcrab Updater Now In Your Applications Menu"
@@ -482,9 +487,9 @@ set -eu
         
     wheresteam(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
-                flatpak run com.valvesoftware.Steam "$@"
+                flatpak run com.valvesoftware.Steam "$@" &> /dev/null
         else
-                steam "$@"
+                steam "$@" &> /dev/null
             fi
                 echo "" &> /dev/null
             }
@@ -492,15 +497,17 @@ set -eu
     wheresteamdir(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                 mkdir -p $FlatpakSLSsteamInstallDir
+				mkdir -p $FlatpakCloudRedirectDir
                 cp -f $InstallDir/library-inject.so $FlatpakSLSsteamInstallDir/
-                cp -f $InstallDir/SLSsteam.so $FlatpakSLSsteamInstallDir/ 
+                cp -f $InstallDir/SLSsteam.so $FlatpakSLSsteamInstallDir/
         else
-                 mkdir -p $SLSsteamInstallDir
+                 mkdir -p $CloudRedirectDir
+				 mkdir -p $SLSsteamInstallDir
                  mkdir -p $SLSsteamConfigDir
                  cp -f $InstallDir/library-inject.so $SLSsteamInstallDir/
                  cp -f $InstallDir/SLSsteam.so $SLSsteamInstallDir/
             fi
-                echo "" &> /dev/null
+				echo "" &> /dev/null
             }
             
     wheresteamcfg(){
@@ -561,17 +568,18 @@ set -eu
         conditioncheck
         }
 
-
     downloadSLSsteam(){
         echo "Downloading Latest SLSsteam.."
         cd $SCRIPT_DIR/
-		mkdir -p $SCRIPT_DIR/SLSsteam_Download
-		cd SLSsteam_Download
+        mkdir -p $SCRIPT_DIR/SLSsteam_Download
+        cd SLSsteam_Download
+        local TAG
+        TAG=$(curl -sSL --connect-timeout 15 --max-time 30 \
+            -o /dev/null -w "%{url_effective}" \
+            "https://github.com/AceSLS/SLSsteam/releases/latest" 2>/dev/null)
+        TAG="${TAG##*/}"
         wget -O SLSsteam-Any.7z \
-    $(curl -s "https://api.github.com/repos/AceSLS/SLSsteam/releases/latest" \
-    | grep "browser_download_url" \
-    | grep "SLSsteam-Any.7z" \
-    | cut -d '"' -f 4) &> /dev/null
+            "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any.7z" &> /dev/null
     }
     
     export_sls(){
@@ -593,7 +601,8 @@ set -eu
          rm setup.sh
          rm -rf docs
          rm SLSsteam-Any.7z
-         echo "SLSsteam Downloaded: Latest"
+		 echo "SLSsteam Downloaded: Latest"
+		 cd $InstallDir/
          }
 
     copySLSsteam(){
@@ -609,7 +618,7 @@ set -eu
         else
             copySLSsteam
         fi
-            echo &. /dev/null
+            echo &> /dev/null
         }
 
     editconfig(){
@@ -653,7 +662,7 @@ EOF
             rm steam.sh
 			wget -O client.sh "$Headcrab_Client" &> /dev/null
         	wget -O steam.sh "$Headcrab_Flatpak" &> /dev/null
-			chmod +x steam.sh
+			chmod 555 steam.sh
 			chmod +x client.sh
 		fi
             echo "SLSSteamInstallType: Flatpak"
@@ -665,7 +674,7 @@ EOF
             rm steam.sh
 			wget -O client.sh "$Headcrab_Client" &> /dev/null
         	wget -O steam.sh "$Headcrab_Native" &> /dev/null
-			chmod +x steam.sh
+			chmod 555 steam.sh
 			chmod +x client.sh
 		fi
         	echo "SLSSteamInstallType: Local"
