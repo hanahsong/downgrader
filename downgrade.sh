@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu
+
 
     #Headcrab Compatibile Client Version
     HeadcrabCompatibleClientVer=1780352834
@@ -24,11 +24,15 @@ set -eu
 	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_ubuntu12"
     DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab-testing/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
+    Headcrab_Native_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/cr-test/headcrab_native.sh"
 	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
-	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/client.sh"
-	CloudRedirectLib="https://github.com/Selectively11/CloudRedirect/releases/download/linux/cloud_redirect.so"
+    Headcrab_Flatpak_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/cr-test/headcrab_flatpak.sh"
+	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/master/ClientExtracted/steam.sh"
+	CloudRedirectLib="https://github.com/Selectively11/h3adcr-b/releases/download/linux-test/cloud_redirect.so"
     dgsc="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dgsc"
     dlm="https://github.com/Deadboy666/h3adcr-b-modul3s/raw/refs/heads/main/dlm"
+	cloudredirect="https://raw.githubusercontent.com/Selectively11/CloudRedirect/refs/heads/gh-pages/cloudredirect.flatpakrepo"
+    flathub="https://dl.flathub.org/repo/flathub.flatpakrepo"
     Sources="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/sources.txt"
 	Headcrab_Updater="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab.desktop"
 	Headcrab_Icon="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab.png"
@@ -84,6 +88,11 @@ set -eu
     
     flatpakcheck(){
         [ -d "$FlatpakSteamInstallDir" ]
+        }
+    
+    crconfigcheck(){
+      whereSLSsteamconfig
+        grep -F "DisableCloud: no" config.yaml &> /dev/null
         }
 		
 		SetupHeadcrab_Updater(){
@@ -263,7 +272,7 @@ set -eu
             local missing_pkgs=()
             local missing_cmds=()
 
-            for pkg in wget curl grep gawk sed 7zip; do
+            for pkg in wget curl grep gawk sed 7zip flatpak; do
                 case "$pkg" in
                     gawk) cmd="awk" ;;
                     7zip) cmd="7z" ;;
@@ -297,7 +306,7 @@ set -eu
                 return 1
             fi
 
-            for pkg in wget curl grep gawk sed 7zip; do
+            for pkg in wget curl grep gawk sed 7zip flatpak; do
                 case "$pkg" in
                     gawk) cmd="awk" ;;
                     7zip) cmd="7z" ;;
@@ -320,7 +329,7 @@ set -eu
 	
 	InstallArchDeps(){
 		if archcheck; then
-		 local packages=("wget" "curl" "grep" "awk" "sed" "7zip")
+		 local packages=("wget" "curl" "grep" "awk" "sed" "7zip" "flatpak")
 	    local to_install=()
 	
 	    for pkg in "${packages[@]}"; do
@@ -583,29 +592,24 @@ set -eu
     checkforsteamcfg(){
     echo "the headcrab approaches.."
     wheresteamcfg
-    if [ -f "steam.cfg" ]; then
-        rm steam.cfg
-    else
-        echo "No Pre Exisiting Steam.cfg"
-    fi
         nuketheclient
         CheckHeadcrabCompatibility
         conditioncheck
         }
 
     downloadSLSsteam(){
-        echo "Downloading Latest SLSsteam.."
-        cd $SCRIPT_DIR/
-        mkdir -p $SCRIPT_DIR/SLSsteam_Download
-        cd SLSsteam_Download
-        local TAG
-        TAG=$(curl -sSL --connect-timeout 15 --max-time 30 \
-            -o /dev/null -w "%{url_effective}" \
-            "https://github.com/AceSLS/SLSsteam/releases/latest" 2>/dev/null)
-        TAG="${TAG##*/}"
-        wget -O SLSsteam-Any.7z \
-            "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any.7z" &> /dev/null
-    }
+            echo "Downloading Latest SLSsteam.."
+            cd $SCRIPT_DIR/
+            mkdir -p $SCRIPT_DIR/SLSsteam_Download
+            cd SLSsteam_Download
+            local TAG
+            TAG=$(curl -sSL --connect-timeout 15 --max-time 30 \
+                -o /dev/null -w "%{url_effective}" \
+                "https://github.com/AceSLS/SLSsteam/releases/latest" 2>/dev/null)
+            TAG="${TAG##*/}"
+            wget -O SLSsteam-Any.7z \
+                "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any.7z" &> /dev/null
+        }
     
     export_sls(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
@@ -643,9 +647,38 @@ set -eu
         else
             copySLSsteam
         fi
-            echo &> /dev/null
+            echo "" &> /dev/null
         }
-
+        
+    whereCR_Install(){
+       if [ -d "$FlatpakCloudRedirectDir" ]; then
+               cd $FlatpakSteamInstallDir
+        else
+                cd $CloudRedirectDir
+            fi
+                echo "" &> /dev/null
+                }
+    
+    crinstall(){
+      if crconfigcheck; then
+        echo "Downloading Latest Cloud Redirect Library"
+        whereCR_Install
+		 echo "Installing Cloud Redirect App"
+		    flatpak remote-add --user --if-not-exists cloudredirect $cloudredirect
+		    flatpak remote-add --user --if-not-exists flathub $flathub
+		    flatpak --user update --appstream --noninteractive
+		    flatpak install --user flathub org.kde.Platform//6.10 --assumeyes --noninteractive
+		    flatpak install --user --reinstall org.cloudredirect.CloudRedirect --assumeyes --noninteractive
+		    update-desktop-database
+        wget -O cloud_redirect.so "$CloudRedirectLib" &> /dev/null
+        echo "Latest Cloud Redirect Library Downloaded"
+      else
+        echo "User Is Not Using Cloud Redirect Skipping.."
+      fi
+        echo "" &> /dev/null
+        }
+        
+        
     editconfig(){
         whereSLSsteamconfig
             if [ -f .headcrabd ]; then
@@ -656,7 +689,7 @@ set -eu
 				sed -i "s/^NotifyInit:.*/NotifyInit: yes/" config.yaml
 				sed -i "s/^Notifications:.*/Notifications: yes/" config.yaml
 				echo "config patched" > .headcrabd
-                fi
+            fi
             }
 
     createsteamcfg(){
@@ -679,38 +712,79 @@ EOF
                 patchlocalsteam
         fi
         }
-
+        
+    checkcrsteam(){
+      if crconfigcheck; then
+        echo "Fetching Headcrab-CR Client"
+        cd $SteamInstallDir/
+        rm steam.sh
+        wget -O steam.sh "$Headcrab_Native_CR" &> /dev/null
+        echo "Patched Client With Headcrab-CR"
+      else
+        echo "Fetching Headcrab Client"
+        cd $SteamInstallDir/
+        rm steam.sh
+        wget -O steam.sh "$Headcrab_Native" &> /dev/null
+        echo "Patched Client With Headcrab"
+      fi
+        echo "" &> /dev/null
+        }
+        
+    checkcrflatpaksteam(){
+      if crconfigcheck; then
+        echo "Fetching Headcrab-CR Client"
+        cd $FlatpakSteamInstallDir/
+        rm steam.sh
+        wget -O steam.sh "$Headcrab_Flatpak_CR" &> /dev/null
+        echo "Patched Client With Headcrab-CR"
+      else
+        echo "Fetching Headcrab Client"
+        cd $FlatpakSteamInstallDir/
+        rm steam.sh
+        wget -O steam.sh "$Headcrab_Flatpak" &> /dev/null
+        echo "Patched Client With Headcrab"
+      fi
+        echo "" &> /dev/null
+        }
         
     patchflatpaksteam(){
         cd $FlatpakSteamInstallDir/
-        if [ -f "steam.sh" ]; then
-            rm steam.sh
-			wget -O client.sh "$Headcrab_Client" &> /dev/null
-        	wget -O steam.sh "$Headcrab_Flatpak" &> /dev/null
-			chmod 555 steam.sh
+        wget -O client.sh "$Headcrab_Client" &> /dev/null
+            chmod 777 steam.sh
+            checkcrflatpaksteam
+            chmod 555 steam.sh
 			chmod +x client.sh
-		fi
             echo "SLSSteamInstallType: Flatpak"
         }
 
     patchlocalsteam(){
         cd $SteamInstallDir/
-        if [ -f "steam.sh" ]; then
-            rm steam.sh
-			wget -O client.sh "$Headcrab_Client" &> /dev/null
-        	wget -O steam.sh "$Headcrab_Native" &> /dev/null
+        wget -O client.sh "$Headcrab_Client" &> /dev/null
+        chmod 777 steam.sh
+			checkcrsteam
 			chmod 555 steam.sh
 			chmod +x client.sh
-		fi
-        	echo "SLSSteamInstallType: Local"
+        	echo "SLSsteamInstallType: Native"
         }
 
+    checkcrstatus(){
+        if crconfigcheck; then
+            echo "CloudRedirectStatus: Enabled"
+        else
+            echo "CloudRedirectStatus: Disabled"
+        fi
+            echo "" &> /dev/null
+            }
+
         conditioncheck(){
-            echo "Checking Conditions..."
+            crinstall
+            echo "Checking Conditions.."
+            echo "=================================================="
+            editconfig
             patchsteam
             echo "BlockedClientUpdates: Enabled"
-            editconfig
-            echo "HeadcrabStatus: Patched"
+            checkcrstatus
+            echo "=================================================="
             }
 
     main(){
