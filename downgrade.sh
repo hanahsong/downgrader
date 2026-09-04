@@ -2,7 +2,7 @@
 
 
     #Headcrab Compatibile Client Version
-    HeadcrabCompatibleClientVer=1785799196
+    HeadcrabCompatibleClientVer=1788400362
     
     #Paths
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
@@ -20,13 +20,13 @@
     Headcrab_Downgrader_Path=$HOME/.headcrab
 	
 	#URL'S
-    Headcrab_Downgrade_URL="http://localhost:1666"
+    Headcrab_Downgrade_URL="http://localhost:1666/"
 	LinuxClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_ubuntu12"
     DeckClientManifest="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/headcrab/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
-    Headcrab_Native_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_native.sh"
+    Headcrab_Native_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/cr-test/headcrab_native.sh"
 	Headcrab_Flatpak="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
-    Headcrab_Flatpak_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/main/headcrab_flatpak.sh"
+    Headcrab_Flatpak_CR="https://raw.githubusercontent.com/Deadboy666/h3adcr-b-modul3s/refs/heads/cr-test/headcrab_flatpak.sh"
 	Headcrab_Client="https://raw.githubusercontent.com/Deadboy666/SteamTracking/refs/heads/master/ClientExtracted/steam.sh"
 	CloudRedirectLib="https://github.com/Selectively11/h3adcr-b/releases/download/linux-test/cloud_redirect.so"
 	CloudRedirectCLI="https://github.com/Selectively11/h3adcr-b/releases/download/linux-test/cloud_redirect_cli"
@@ -273,7 +273,7 @@
             local missing_pkgs=()
             local missing_cmds=()
 
-            for pkg in wget curl grep gawk sed 7zip flatpak; do
+            for pkg in wget curl grep gawk sed 7zip; do
                 case "$pkg" in
                     gawk) cmd="awk" ;;
                     7zip) cmd="7z" ;;
@@ -307,7 +307,7 @@
                 return 1
             fi
 
-            for pkg in wget curl grep gawk sed 7zip flatpak; do
+            for pkg in wget curl grep gawk sed 7zip; do
                 case "$pkg" in
                     gawk) cmd="awk" ;;
                     7zip) cmd="7z" ;;
@@ -330,7 +330,7 @@
 	
 	InstallArchDeps(){
 		if archcheck; then
-		 local packages=("wget" "curl" "grep" "awk" "sed" "7zip" "flatpak")
+		 local packages=("wget" "curl" "grep" "awk" "sed" "7zip")
 	    local to_install=()
 	
 	    for pkg in "${packages[@]}"; do
@@ -347,6 +347,32 @@
 	    fi
 		fi
 	}
+
+    InstallFlatpakDep(){
+        if command -v flatpak >/dev/null 2>&1; then
+            return 0
+        fi
+
+        echo "Cloud Redirect requires Flatpak. Installing..."
+
+        if archcheck; then
+            sudo pacman -S --needed --noconfirm flatpak
+        elif debiancheck; then
+            sudo apt-get install -y flatpak
+        elif voidcheck; then
+            if [ "$(id -u)" -eq 0 ]; then
+                xbps-install -y flatpak
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo xbps-install -y flatpak
+            else
+                echo "Flatpak is required for Cloud Redirect"
+                return 1
+            fi
+        else
+            echo "Flatpak is required for Cloud Redirect"
+            return 1
+        fi
+    }
 
     RemoveArchPkg(){
         if archcheck; then
@@ -387,7 +413,7 @@
 	
     TrashiteWatMani(){
 		wheresteampackage
-		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed"]; then
+		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
 			echo "Headcrab Downloading Bazzite-Deck Client Manifest"
 			wget -O steam_client_steamdeck_stable_ubuntu12.manifest "$DeckClientManifest" &> /dev/null
 		else
@@ -720,7 +746,7 @@
                 "https://github.com/AceSLS/SLSsteam/releases/latest" 2>/dev/null)
             TAG="${TAG##*/}"
             wget -O SLSsteam-Any.7z \
-                "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any.7z" &> /dev/null
+                "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any-release.7z" &> /dev/null
         }
 		
 		downloadnetsock(){
@@ -730,7 +756,7 @@
             local TAG
             TAG=$(curl -sSL --connect-timeout 15 --max-time 30 \
                 -o /dev/null -w "%{url_effective}" \
-                "yesyes0649/steamnetsock-patch/releases/latest" 2>/dev/null)
+                "https://github.com/yesyes0649/steamnetsock-patch/releases/latest" 2>/dev/null)
             TAG="${TAG##*/}"
             wget -O netsock.so \
                 "https://github.com/yesyes0649/steamnetsock-patch/releases/download/$TAG/fix.so" &> /dev/null
@@ -790,6 +816,7 @@
     
     crinstall(){
       if crconfigcheck; then
+        InstallFlatpakDep || return 1
         echo "Downloading Latest Cloud Redirect Library"
         whereCR_Install
 		 echo "Installing Cloud Redirect App"
@@ -812,13 +839,18 @@
         
     editconfig(){
         whereSLSsteamconfig
-            if [ -f .headcrabd ]; then
-                echo "Headcrab Config Found Skipping Changes"
-            else
-                sed -i "s/^PlayNotOwnedGames:.*/PlayNotOwnedGames: yes/" config.yaml
-                sed -i "s/^SafeMode:.*/SafeMode: yes/" config.yaml
+            if steamoscheck; then
+				echo "Steamos Detected Enabled Safemode"
+				sed -i "s/^SafeMode:.*/SafeMode: yes/" config.yaml
 				sed -i "s/^NotifyInit:.*/NotifyInit: yes/" config.yaml
-				sed -i "s/^Notifications:.*/Notifications: yes/" config.yaml
+				echo "config patched" > .headcrabd
+			elif cachyoscheck; then
+				echo "Cachy OS Detected Adjusted Loglevel"
+				sed -i "s/^LogLevels:.*/LogLevels: 0x3f/" config.yaml
+				sed -i "s/^SafeMode:.*/SafeMode: no/" config.yaml
+				echo "config patched" > .headcrabd
+			else
+                sed -i "s/^SafeMode:.*/SafeMode: no/" config.yaml
 				echo "config patched" > .headcrabd
             fi
             }
