@@ -2,18 +2,13 @@
 
 
     #Headcrab Compatibile Client Version
-    HeadcrabCompatibleClientVer=1788652215
-
+    HeadcrabCompatibleClientVer=1791918634
+    
     #Paths
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 	ApplicationDirectory=$HOME/.local/share/applications
 	IconDirectory=$HOME/.local/share/icons/hicolor/48x48/apps
-    # Prefer the real Steam tree (~/.local/share/Steam); ~/.steam/steam is usually a symlink.
-    if [ -d "$HOME/.local/share/Steam" ]; then
-        SteamInstallDir="$HOME/.local/share/Steam"
-    else
-        SteamInstallDir=$HOME/.steam/steam
-    fi
+    SteamInstallDir=$HOME/.steam/steam
     FlatpakCloudRedirectDir=$HOME/.var/app/com.valvesoftware.Steam/.local/share/CloudRedirect
 	FlatpakSteamInstallDir=$HOME/.var/app/com.valvesoftware.Steam/.steam/steam
     FlatpakSLSsteamInstallDir=$HOME/.var/app/com.valvesoftware.Steam/.local/share/SLSsteam
@@ -23,14 +18,10 @@
     SLSsteamConfigDir=$HOME/.config/SLSsteam
     InstallDir=$SCRIPT_DIR/SLSsteam_Download/bin
     Headcrab_Downgrader_Path=$HOME/.headcrab
-    Headcrab_Cache_Path=$Headcrab_Downgrader_Path/cache
-    SteamCDN="http://media.steampowered.com/client/"
-    STEAMTRACKING_RAW="https://raw.githubusercontent.com/SteamTracking/SteamTracking"
-    # Git commit that ships ClientManifest version HeadcrabCompatibleClientVer (SteamTracking).
-    Headcrab_TargetManifestSha=bbc717da8ddd35ac9a091eb87664ae06d64c7145
-
+	
 	#URL'S
-    Headcrab_Downgrade_URL="http://127.0.0.1:1666/"
+	Headcrab_Downgrade_URL=""
+    #Headcrab_Downgrade_URL="http://web.archive.org/web/20261006145653if_/media.steampowered.com/client/"
 	LinuxClientManifest="https://cdn.jsdelivr.net/gh/Deadboy666/SteamTracking@refs/heads/headcrab/ClientManifest/steam_client_ubuntu12"
     DeckClientManifest="https://cdn.jsdelivr.net/gh/Deadboy666/SteamTracking@refs/heads/headcrab/ClientManifest/steam_client_steamdeck_stable_ubuntu12"
 	Headcrab_Native="https://cdn.jsdelivr.net/gh/Deadboy666/h3adcr-b-modul3s@refs/heads/main/headcrab_native.sh"
@@ -47,7 +38,7 @@
     Sources="https://cdn.jsdelivr.net/gh/Deadboy666/h3adcr-b-modul3s@refs/heads/main/stable-sources.txt"
 	Headcrab_Updater="https://cdn.jsdelivr.net/gh/Deadboy666/h3adcr-b-modul3s@refs/heads/main/headcrab.desktop"
 	Headcrab_Icon="https://cdn.jsdelivr.net/gh/Deadboy666/h3adcr-b-modul3s@refs/heads/main/headcrab.png"
-
+	
     read_os_release(){
         local f
         OS_ID=""
@@ -75,37 +66,37 @@
             *" debian "*|*" ubuntu "*) return 0 ;;
         esac
         return 1
-        }
+        }   
 
     steamoscheck(){
         read_os_release
         [ "$OS_ID" = "steamos" ]
         }
-
+		
 	voidcheck(){
         read_os_release
         [ "$OS_ID" = "void" ]
         }
-
+	
 	cachyoscheck(){
         read_os_release
         [ "$OS_ID" = "cachyos" ]
         }
-
+		
 	bazzitecheck(){
         read_os_release
         [ "$OS_ID" = "bazzite" ]
         }
-
+    
     flatpakcheck(){
         [ -d "$FlatpakSteamInstallDir" ]
         }
-
+    
     crconfigcheck(){
       whereSLSsteamconfig
         grep -F "DisableCloud: no" config.yaml &> /dev/null
         }
-
+		
 		SetupHeadcrab_Updater(){
 		mkdir -p $ApplicationDirectory
 		mkdir -p $IconDirectory
@@ -118,7 +109,7 @@
 			echo "Headcrab Updater Now In Your Applications Menu"
 			echo "Can Open Up Headcrab Updater To Update To Latest Version."
 	}
-
+        
     SteamOSClientCheck(){
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
@@ -132,7 +123,7 @@
         fi
             echo "SteamClientType: SteamOS"
         }
-
+		
 	BazziteClientCheck(){
         if [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_steamdeck_stable_ubuntu12.manifest | awk -F'"' '{print $4}')
@@ -188,7 +179,7 @@
         fi
             echo "SteamClientType: Native"
         }
-
+		
 	VoidClientCheck(){
         if [ -f "steam_client_ubuntu12.manifest" ]; then
             versionnumber=$(grep '"version"' steam_client_ubuntu12.manifest | awk -F'"' '{print $4}')
@@ -199,7 +190,7 @@
         fi
             echo "SteamClientType: Void"
         }
-
+		
     CheckClientInfo(){
         echo "SteamClientInfo:"
         wheresteampackage
@@ -218,7 +209,7 @@
         fi
             echo "SteamClientVersion: $versionnumber"
             }
-
+    
     CheckHeadcrabCompatibility(){
             echo "=================================================="
         CheckClientInfo
@@ -242,7 +233,7 @@
         DisableSLSsteamPath
         }
 
-    InstallDebianDeps() {
+    InstallDebianDeps() {	    
 	    if debiancheck; then
 
 		if apt-cache search --names-only '^libcurl4t64$' | grep -q "libcurl4t64"; then
@@ -271,7 +262,7 @@
 
         fi
 	    }
-
+		
 		InstallVoidDeps(){
         if voidcheck; then
             if ! command -v xbps-install >/dev/null 2>&1; then
@@ -337,18 +328,18 @@
             echo "Void dependencies installed successfully"
         fi
     }
-
+	
 	InstallArchDeps(){
 		if archcheck; then
 		 local packages=("wget" "curl" "grep" "awk" "sed" "7zip")
 	    local to_install=()
-
+	
 	    for pkg in "${packages[@]}"; do
 	        if ! pacman -Qs "$pkg" &>/dev/null; then
 	            to_install+=("$pkg")
 	        fi
 	    done
-
+	
 	    if [ ${#to_install[@]} -eq 0 ]; then
 	        echo "All required packages are already installed."
 	    else
@@ -420,7 +411,7 @@
             echo "Not present: $local_target"
         fi
     }
-
+	
     TrashiteWatMani(){
 		wheresteampackage
 		if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ]; then
@@ -428,7 +419,7 @@
 			wget -O steam_client_steamdeck_stable_ubuntu12.manifest "$DeckClientManifest" &> /dev/null
 		else
 			echo "Headcrab Downloading Bazzite-Desktop Client Manifest"
-			wget -O steam_client_ubuntu12.manifest "$LinuxClientManifest" &> /dev/null
+			wget -O steam_client_ubuntu12 "$LinuxClientManifest" &> /dev/null
 		fi
 			echo "" &> /dev/null
 		}
@@ -440,11 +431,11 @@
 			wget -O steam_client_steamdeck_stable_ubuntu12.manifest "$DeckClientManifest" &> /dev/null
 		else
 			echo "Headcrab Downloading CachyOS-Desktop Client Manifest"
-			wget -O steam_client_ubuntu12.manifest "$LinuxClientManifest" &> /dev/null
+			wget -O steam_client_ubuntu12 "$LinuxClientManifest" &> /dev/null
 		fi
 			echo "" &> /dev/null
 		}
-
+		
     DownloadClientManifest(){
 	    if steamoscheck; then
 	        echo "Headcrab Downloading Steamos Client Manifest.."
@@ -455,113 +446,11 @@
 			CachyWatMani
 	    else
 	        echo "Headcrab Downloading Linux Client Manifest.."
-	        wget -O steam_client_ubuntu12.manifest "$LinuxClientManifest" &> /dev/null
+	        wget -O steam_client_ubuntu12 "$LinuxClientManifest" &> /dev/null
 	    fi
 	        echo "Client Manifest Downloaded"
     }
-
-    # Manifest name Steam requests via -overridepackageurl (NO .manifest suffix on Deck stable).
-    headcrab_served_manifest_name(){
-        wheresteampackage
-        if [ -f "steam_client_steamdeck_stable_ubuntu12.installed" ] \
-            || [ -f "steam_client_steamdeck_stable_ubuntu12.manifest" ] \
-            || steamoscheck; then
-            echo "steam_client_steamdeck_stable_ubuntu12"
-        elif [ -f "steam_client_ubuntu12.installed" ] || [ -f "steam_client_ubuntu12.manifest" ]; then
-            echo "steam_client_ubuntu12"
-        elif [ -f "steam_client_publicbeta_ubuntu12.installed" ] || [ -f "steam_client_publicbeta_ubuntu12.manifest" ]; then
-            echo "steam_client_publicbeta_ubuntu12"
-        else
-            echo "steam_client_steamdeck_stable_ubuntu12"
-        fi
-    }
-
-    headcrab_upstream_manifest_name(){
-        case "$(headcrab_served_manifest_name)" in
-            steam_client_steamdeck_*|steam_client_ubuntu12) echo "steam_client_ubuntu12" ;;
-            *) echo "steam_client_publicbeta_ubuntu12" ;;
-        esac
-    }
-
-    resolve_target_manifest_sha(){
-        if [ -n "$Headcrab_TargetManifestSha" ]; then
-            echo "$Headcrab_TargetManifestSha"
-            return 0
-        fi
-        python3 - <<'PY' "$HeadcrabCompatibleClientVer"
-import json, re, sys, urllib.request
-target = sys.argv[1]
-api = "https://api.github.com/repos/SteamTracking/SteamTracking/commits?path=ClientManifest/steam_client_ubuntu12&per_page=100"
-req = urllib.request.Request(api, headers={"User-Agent": "headcrab-downgrade"})
-data = json.loads(urllib.request.urlopen(req, timeout=45).read())
-for c in data:
-    sha = c["sha"]
-    url = f"https://raw.githubusercontent.com/SteamTracking/SteamTracking/{sha}/ClientManifest/steam_client_ubuntu12"
-    text = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "headcrab-downgrade"}), timeout=20).read().decode("utf-8", "replace")
-    m = re.search(r'"version"\s+"(\d+)"', text)
-    if m and m.group(1) == target:
-        print(sha)
-        raise SystemExit(0)
-raise SystemExit(1)
-PY
-    }
-
-    download_target_client_manifest(){
-        local served upstream sha url tmp ver
-        served="$(headcrab_served_manifest_name)"
-        upstream="$(headcrab_upstream_manifest_name)"
-        sha="$(resolve_target_manifest_sha)" || {
-            echo "Could not find SteamTracking commit for version $HeadcrabCompatibleClientVer"
-            return 1
-        }
-        mkdir -p "$Headcrab_Cache_Path" || return 1
-        url="$STEAMTRACKING_RAW/$sha/ClientManifest/$upstream"
-        tmp="$(mktemp)"
-        echo "Headcrab fetching target manifest v$HeadcrabCompatibleClientVer ($sha) …"
-        wget -q -O "$tmp" "$url" || { rm -f "$tmp"; return 1; }
-        ver=$(grep -m1 '"version"' "$tmp" | awk -F'"' '{print $4}')
-        if [ "$ver" != "$HeadcrabCompatibleClientVer" ]; then
-            echo "Manifest version mismatch: wanted $HeadcrabCompatibleClientVer got ${ver:-unknown}"
-            rm -f "$tmp"
-            return 1
-        fi
-        cp -f "$tmp" "$Headcrab_Cache_Path/$served"
-        rm -f "$tmp"
-        echo "Cached manifest as $Headcrab_Cache_Path/$served"
-    }
-
-    download_manifest_packages(){
-        local served="$Headcrab_Cache_Path/$(headcrab_served_manifest_name)"
-        if [ ! -f "$served" ]; then
-            echo "Missing cached manifest: $served"
-            return 1
-        fi
-        echo "Headcrab downloading client packages for v$HeadcrabCompatibleClientVer (this can take a while) …"
-        python3 - <<'PY' "$served" "$Headcrab_Cache_Path" "$SteamCDN"
-import re, subprocess, sys
-from pathlib import Path
-manifest = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
-dest = Path(sys.argv[2])
-cdn = sys.argv[3]
-files = []
-seen = set()
-for f in re.findall(r'"file"\s*"([^"]+)"', manifest):
-    if f not in seen:
-        seen.add(f)
-        files.append(f)
-total = len(files)
-for i, f in enumerate(files, 1):
-    out = dest / f
-    url = cdn + f
-    if out.is_file() and out.stat().st_size > 0:
-        print(f"[{i}/{total}] skip (exists) {f}")
-        continue
-    print(f"[{i}/{total}] {f}")
-    subprocess.run(["wget", "-c", "-q", "-O", str(out), url], check=False)
-print(f"Package cache ready under {dest}")
-PY
-    }
-
+    
     download_dgsc(){
         mkdir -p $Headcrab_Downgrader_Path
         cd $Headcrab_Downgrader_Path/
@@ -574,7 +463,7 @@ PY
         fi
           echo "" &> /dev/null
         }
-
+        
         download_dlm(){
         mkdir -p $Headcrab_Downgrader_Path
         cd $Headcrab_Downgrader_Path/
@@ -587,7 +476,7 @@ PY
         fi
           echo "" &> /dev/null
         }
-
+        
         dlm(){
         download_dlm
         echo "Running Fetching Client Update Headcrab_dlm.."
@@ -595,49 +484,23 @@ PY
         $Headcrab_Downgrader_Path/dlm --input-file sources.txt --max-concurrent 16
         echo "Headcrab_dlm Fetched Client Update"
         }
-
-    start_dgsc_server(){
-        download_dgsc
-        killall dgsc 2>/dev/null || true
-        if [ ! -d "$Headcrab_Cache_Path" ] || [ ! -f "$Headcrab_Cache_Path/$(headcrab_served_manifest_name)" ]; then
-            echo "Headcrab cache/manifest missing — run prepdowngrade first"
-            return 1
-        fi
-        echo "Starting Headcrab_dgsc on $Headcrab_Downgrade_URL (root=$Headcrab_Cache_Path) …"
-        (
-            cd "$Headcrab_Cache_Path" || exit 1
-            exec "$Headcrab_Downgrader_Path/dgsc" --port 1666 --silent
-        ) &
-        DGSC_PID=$!
-        sleep 2
-        if ! kill -0 "$DGSC_PID" 2>/dev/null; then
-            echo "Headcrab_dgsc failed to start"
-            return 1
-        fi
-    }
-
-    stop_dgsc_server(){
-        killall dgsc 2>/dev/null || true
-    }
-
+        
     dgsc(){
-        start_dgsc_server "$@"
+        download_dgsc
+        echo "Running Headcrab_dgsc.."
+        wheresteampackage
+        $Headcrab_Downgrader_Path/dgsc --port 1666 --silent & sleep 1s "$@"
         }
-
+        
     prepdowngrade(){
-        mkdir -p "$Headcrab_Cache_Path"
-        download_target_client_manifest || return 1
-        download_manifest_packages || return 1
-        local pkg="$SteamInstallDir/package"
-        mkdir -p "$pkg"
-        if ls "$pkg"/* >/dev/null 2>&1; then
-            backup="$SteamInstallDir/package.backup-$(date +%Y%m%d-%H%M%S)"
-            echo "Backing up package/ → $(basename "$backup")"
-            cp -a "$pkg" "$backup"
-        fi
-        rm -f "$pkg"/*
+        wheresteamcfg
+        rm package/*
+        wheresteampackage
+        #wget -O sources.txt "$Sources" &> /dev/null
+        DownloadClientManifest
+		#dlm
         }
-
+        
     clientinstall(){
         echo "the headcrab latches on the steam process.."
 		createsteamcfg
@@ -654,27 +517,27 @@ PY
             echo "Headcrab Bootstrapping SLSsteam.."
            export_sls wheresteam -exitsteam
         elif flatpakcheck; then
-            echo "Headcrab Bootstrapping SLSsteam.."
+            echo "Headcrab Bootstrapping SLSsteam.."  
 			export_sls wheresteam -clearbeta steam://exit
 		elif voidcheck; then
 			echo "Void Linux"
-			echo "Headcrab Bootstrapping SLSsteam.."
+			echo "Headcrab Bootstrapping SLSsteam.."  
 			export_sls wheresteam -clearbeta -exitsteam
 		else
 			export_sls wheresteam -clearbeta -exitsteam &> /dev/null
         fi
             echo "" &> /dev/null
             }
-
+        
     clientdowngrade(){
         prepdowngrade
         overideupdate
         }
-
+        
     nuketheclient(){
                 killall steam | true
             }
-
+        
     wheresteam(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                 flatpak run com.valvesoftware.Steam "$@" &> /dev/null
@@ -683,17 +546,7 @@ PY
             fi
                 echo "" &> /dev/null
             }
-
-    # Steam client update must NOT run with LD_AUDIT / Hammer inject loaded.
-    wheresteam_plain(){
-        if [ -d "$FlatpakSteamInstallDir" ]; then
-            env -u LD_AUDIT -u LD_PRELOAD flatpak run com.valvesoftware.Steam "$@"
-        else
-            env -u LD_AUDIT -u LD_PRELOAD steam "$@"
-        fi
-            echo "" &> /dev/null
-            }
-
+            
     wheresteamdir(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                 mkdir -p $FlatpakSLSsteamInstallDir
@@ -709,7 +562,7 @@ PY
             fi
 				echo "" &> /dev/null
             }
-
+            
     wheresteamcfg(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                cd $FlatpakSteamInstallDir/
@@ -718,7 +571,7 @@ PY
             fi
                 echo "" &> /dev/null
             }
-
+			
 	wheresteampackage(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                cd $FlatpakSteamInstallDir/package
@@ -850,26 +703,32 @@ PY
             echo "Config Backup: $backup"
         )
     }
-
+            
     overideupdate(){
         echo "the headcrab latches on the steam process.."
-        stop_dgsc_server
-        createsteamcfg
-        start_dgsc_server || return 1
-        echo "Headcrab Connecting to The Updater.."
-        if steamoscheck || bazzitecheck; then
-            echo "SteamOS / Bazzite detected"
-            wheresteam_plain -textmode -forcesteamupdate -forcepackagedownload \
-                -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam
+		killall dgsc | true
+        if steamoscheck; then
+            echo "Steamos Detected"
+            createsteamcfg
+            #dgsc
+            echo "Headcrab Connecting to The Updater.."
+           export_sls wheresteam  -forcesteamupdate -forcepackagedownload -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam &> /dev/null
+		elif bazzitecheck; then
+			echo "Bazzite Detected"
+            createsteamcfg
+            #dgsc
+            echo "Headcrab Connecting to The Updater.."
+           export_sls wheresteam  -forcesteamupdate -forcepackagedownload -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam &> /dev/null
         else
-            wheresteam_plain -textmode -clearbeta -forcesteamupdate -forcepackagedownload \
-                -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam
+            createsteamcfg
+            #dgsc
+            echo "Headcrab Connecting to The Updater.."
+            export_sls wheresteam  -forcesteamupdate -forcepackagedownload -overridepackageurl "$Headcrab_Downgrade_URL" -exitsteam &> /dev/null
         fi
-        stop_dgsc_server
-        echo "Compatible Update Applied Via Headcrab_dgsc"
-        CheckClientInfo
+            #killall dgsc
+            echo "Compatible Update Applied Via Headcrab_dgsc"
             }
-
+            
     checkforsteamcfg(){
     echo "the headcrab approaches.."
     wheresteamcfg
@@ -890,7 +749,7 @@ PY
             wget -O SLSsteam-Any.7z \
                 "https://github.com/AceSLS/SLSsteam/releases/download/$TAG/SLSsteam-Any-release.7z" &> /dev/null
         }
-
+		
 		downloadnetsock(){
             echo "Downloading Latest Netsock Lib.."
             mkdir -p ~/.config/SLSsteam/tools/netsock
@@ -900,7 +759,7 @@ PY
                 echo "Downloaded Latest Netsock Lib."
 				cd $SCRIPT_DIR/
         }
-
+    
     export_sls(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                 copySLSsteam
@@ -941,7 +800,7 @@ PY
         fi
             echo "" &> /dev/null
         }
-
+        
     whereCR_Install(){
        if [ -d "$FlatpakCloudRedirectDir" ]; then
                cd $FlatpakSteamInstallDir
@@ -950,7 +809,7 @@ PY
             fi
                 echo "" &> /dev/null
                 }
-
+    
     crinstall(){
       if crconfigcheck; then
         InstallFlatpakDep || return 1
@@ -972,8 +831,8 @@ PY
       fi
         echo "" &> /dev/null
         }
-
-
+        
+        
     editconfig(){
         whereSLSsteamconfig
             if steamoscheck; then
@@ -994,11 +853,14 @@ PY
 
     createsteamcfg(){
     wheresteamcfg
-    cat << 'EOF' > steam.cfg
+    if [ -f "steam.cfg" ]; then
+        echo "steam.cfg Found Skipping Creation Process.."
+    else
+        cat << 'EOF' > steam.cfg
 BootStrapperInhibitAll=enable
 BootStrapperForceSelfUpdate=disable
 EOF
-        echo "steam.cfg written (blocks auto re-update to latest Valve build)"
+    fi
         echo "" &> /dev/null
     }
 
@@ -1009,7 +871,7 @@ EOF
                 patchlocalsteam
         fi
         }
-
+        
     checkcrsteam(){
       if crconfigcheck; then
         echo "Fetching Headcrab-CR Client"
@@ -1026,7 +888,7 @@ EOF
       fi
         echo "" &> /dev/null
         }
-
+        
     checkcrflatpaksteam(){
       if crconfigcheck; then
         echo "Fetching Headcrab-CR Client"
@@ -1043,7 +905,7 @@ EOF
       fi
         echo "" &> /dev/null
         }
-
+        
     patchflatpaksteam(){
         cd $FlatpakSteamInstallDir/
         wget -O client.sh "$Headcrab_Client" &> /dev/null
@@ -1091,3 +953,5 @@ EOF
         }
 
     main
+
+✕Merlin
