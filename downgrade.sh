@@ -566,8 +566,10 @@
     wheresteamcfg(){
         if [ -d "$FlatpakSteamInstallDir" ]; then
                cd $FlatpakSteamInstallDir/
+			   echo "" &> .steam-disable-steamrt64-client
         else
                 cd $SteamInstallDir/
+				echo "" &> .steam-disable-steamrt64-client
             fi
                 echo "" &> /dev/null
             }
@@ -816,6 +818,7 @@
         echo "Downloading Latest Cloud Redirect Library"
         whereCR_Install
 		 echo "Installing Cloud Redirect App"
+		    flatpak remote-delete --user cloudredirect --force
 		    flatpak remote-add --user --if-not-exists cloudredirect $cloudredirect
 		    flatpak remote-add --user --if-not-exists flathub $flathub
 		    flatpak --user update --appstream --noninteractive
